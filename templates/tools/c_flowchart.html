@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+
+{% block title %}C Function Flowchart - MyTools{% endblock %}
+
+{% block extra_css %}
+<style>
+    #codeInput {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        background-color: #1e1e1e;
+        color: #d4d4d4;
+        border: 1px solid #3c3c3c;
+    }
+    
+    #codeInput::placeholder {
+        color: #6a6a6a;
+    }
+    
+    .flowchart-container {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        min-height: 400px;
+        max-height: 600px;
+        overflow: auto;
+        border: 1px solid #dee2e6;
+    }
+    
+    .function-list {
+        max-height: 300px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    
+    .function-item {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .function-name {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-weight: 600;
+        color: #0066cc;
+    }
+    
+    .function-calls {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .stat-box {
+        text-align: center;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+    }
+    
+    .stat-box h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .stat-box small {
+        opacity: 0.9;
+    }
+    
+    .diagram-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .zoom-controls {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+    }
+    
+    #mermaidDiagram {
+        text-align: center;
+    }
+    
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 400px;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    /* Fullscreen styles */
+    .fullscreen-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: white;
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+    }
+    
+    .fullscreen-container.active {
+        display: flex;
+    }
+    
+    .fullscreen-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .fullscreen-content {
+        flex: 1;
+        overflow: auto;
+        padding: 20px;
+        background: #f8f9fa;
+    }
+    
+    .fullscreen-content .flowchart-container {
+        max-height: none;
+        height: 100%;
+        background: white;
+    }
+    
+    .fullscreen-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .fullscreen-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    
+    .fullscreen-zoom-controls {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 5px 10px;
+        border-radius: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm mb-2">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <h2 class="mb-0"><i class="bi bi-diagram-3"></i> C Function Flowchart</h2>
+            <p class="text-muted">Visualize function call relationships in your C code</p>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" id="generateBtn">
+                            <i class="bi bi-diagram-3"></i> Generate Flowchart
+                        </button>
+                        <button class="btn btn-outline-secondary" id="clearBtn">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                        <button class="btn btn-success" id="downloadBtn" disabled>
+                            <i class="bi bi-download"></i> Download PNG
+                        </button>
+                        <button class="btn btn-outline-info" id="copyMermaidBtn" disabled>
+                            <i class="bi bi-code"></i> Copy Mermaid Code
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Input Column -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square"></i> C Code Input</h5>
+                </div>
+                <div class="card-body p-0">
+                    <textarea id="codeInput" class="form-control border-0 rounded-0" 
+                              rows="20" 
+                              placeholder="Paste your C code here...
+
+Example:
+#include<stdio.h>
+
+void helper() {
+    printf(&quot;Helper function&quot;);
+}
+
+void process() {
+    helper();
+}
+
+int main() {
+    process();
+    return 0;
+}"></textarea>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Analyzes function calls, detects recursion and loop calls
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Column -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-diagram-2"></i> Function Flowchart</h5>
+                        <button class="btn btn-sm btn-light" id="fullscreenBtn" title="View Fullscreen" disabled>
+                            <i class="bi bi-arrows-fullscreen"></i> Fullscreen
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Diagram Controls -->
+                    <div class="diagram-controls" id="diagramControls" style="display: none;">
+                        <div class="zoom-controls">
+                            <span class="text-muted small">Zoom:</span>
+                            <button class="btn btn-sm btn-outline-secondary" id="zoomOutBtn">
+                                <i class="bi bi-zoom-out"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="zoomResetBtn">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="zoomInBtn">
+                                <i class="bi bi-zoom-in"></i>
+                            </button>
+                        </div>
+                        <select class="form-select form-select-sm w-auto" id="layoutSelect">
+                            <option value="TB">Top to Bottom</option>
+                            <option value="LR">Left to Right</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Flowchart Display -->
+                    <div class="flowchart-container" id="flowchartContainer">
+                        <div class="empty-state">
+                            <i class="bi bi-diagram-3"></i>
+                            <h5>No flowchart generated yet</h5>
+                            <p>Enter C code and click "Generate Flowchart"</p>
+                        </div>
+                        <div id="mermaidDiagram" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics & Function List -->
+    <div class="row g-3 mt-3">
+        <!-- Statistics -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Analysis Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="stat-box">
+                                <h4 id="functionCount">0</h4>
+                                <small>Functions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <h4 id="callCount">0</h4>
+                                <small>Function Calls</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                <h4 id="entryPoint">-</h4>
+                                <small>Entry Point</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Function List -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Detected Functions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="function-list" id="functionList">
+                        <p class="text-muted text-center">No functions detected yet</p>
+                    </div>
+                    <div class="mt-3 p-2 bg-light rounded">
+                        <small class="d-block mb-1"><strong>Legend:</strong></small>
+                        <small class="d-block"><span style="color: #4caf50;">●</span> Green: Entry point (main)</small>
+                        <small class="d-block"><span style="color: #ff9800;">●</span> Orange: Recursive function</small>
+                        <small class="d-block"><span style="color: #2196f3;">● →</span> Solid arrow: Normal call</small>
+                        <small class="d-block"><span style="color: #2196f3;">● ⋯→</span> Dashed arrow: Call in loop</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fullscreen View -->
+<div class="fullscreen-container" id="fullscreenContainer">
+    <div class="fullscreen-header">
+        <div class="fullscreen-title">
+            <i class="bi bi-diagram-3"></i>
+            <span>C Function Flowchart - Fullscreen View</span>
+        </div>
+        <div class="fullscreen-actions">
+            <!-- Zoom controls -->
+            <div class="fullscreen-zoom-controls">
+                <button class="btn btn-sm btn-light" id="fsZoomOutBtn" title="Zoom Out">
+                    <i class="bi bi-zoom-out"></i>
+                </button>
+                <span class="text-white small" id="fsZoomLevel">100%</span>
+                <button class="btn btn-sm btn-light" id="fsZoomInBtn" title="Zoom In">
+                    <i class="bi bi-zoom-in"></i>
+                </button>
+                <button class="btn btn-sm btn-light" id="fsZoomResetBtn" title="Reset Zoom">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            
+            <!-- Layout selector -->
+            <select class="form-select form-select-sm w-auto" id="fsLayoutSelect">
+                <option value="TB">Top to Bottom</option>
+                <option value="LR">Left to Right</option>
+            </select>
+            
+            <!-- Action buttons -->
+            <button class="btn btn-sm btn-success" id="fsDownloadBtn">
+                <i class="bi bi-download"></i> Download
+            </button>
+            <button class="btn btn-sm btn-light" id="exitFullscreenBtn">
+                <i class="bi bi-x-lg"></i> Exit (ESC)
+            </button>
+        </div>
+    </div>
+    <div class="fullscreen-content">
+        <div class="flowchart-container">
+            <div id="fullscreenMermaidDiagram"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert">
+        <div class="toast-header">
+            <i class="bi bi-check-circle-fill text-success me-2"></i>
+            <strong class="me-auto">Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            Action completed successfully!
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Mermaid JS for flowchart generation -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+    mermaid.initialize({ 
+        startOnLoad: false,
+        theme: 'default',
+        flowchart: {
+            useMaxWidth: true,
+            htmlLabels: true,
+            curve: 'basis'
+        }
+    });
+</script>
+<script src="{{ url_for('static', filename='js/c_flowchart.js') }}"></script>
+{% endblock %}
+

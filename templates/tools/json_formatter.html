@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}JSON Formatter - MyTools{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<style>
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    
+    .action-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-format {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
+    }
+    
+    .btn-format:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30, 60, 114, 0.4);
+    }
+    
+    .btn-minify {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+    }
+    
+    .btn-minify:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+    }
+    
+    .btn-copy {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+    
+    .btn-copy:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+    }
+    
+    .btn-clear {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        color: white;
+    }
+    
+    .btn-clear:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(250, 112, 154, 0.3);
+    }
+    
+    .editor-area {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        border: 2px solid #e1e8ed;
+        border-radius: 8px;
+        padding: 15px;
+        min-height: 400px;
+        max-height: 600px;
+        overflow: auto;
+        background: #f8f9fa;
+        transition: border-color 0.3s;
+    }
+    
+    .editor-area:focus {
+        outline: none;
+        border-color: #1e3c72;
+        box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
+    
+    .stat-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        margin: 5px;
+        font-weight: 600;
+        color: #1e3c72;
+    }
+    
+    .stat-item i {
+        color: #2a5298;
+    }
+    
+    .error-message {
+        background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+        color: #c00;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #c00;
+        margin-bottom: 15px;
+        display: none;
+    }
+    
+    .success-message {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+        margin-bottom: 15px;
+        display: none;
+    }
+    
+    .options-panel {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
+    
+    .option-group {
+        margin-bottom: 15px;
+    }
+    
+    .option-label {
+        font-weight: 600;
+        color: #1e3c72;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    pre[class*="language-"] {
+        margin: 0;
+        border-radius: 8px;
+        max-height: 600px;
+    }
+    
+    .output-container {
+        position: relative;
+    }
+    
+    .copy-floating-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(30, 60, 114, 0.9);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+        z-index: 10;
+    }
+    
+    .copy-floating-btn:hover {
+        background: rgba(30, 60, 114, 1);
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm mb-2">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <h2 class="mb-0"><i class="bi bi-braces"></i> JSON Formatter</h2>
+            <p class="text-muted">Format, validate, and beautify JSON data</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Input Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white;">
+                    <h5 class="mb-0"><i class="bi bi-input-cursor-text"></i> Input JSON</h5>
+                </div>
+                <div class="card-body">
+                    <div class="error-message" id="errorMessage">
+                        <strong><i class="bi bi-exclamation-triangle"></i> Error:</strong>
+                        <span id="errorText"></span>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn btn-format" id="formatBtn">
+                            <i class="bi bi-code-square"></i> Format
+                        </button>
+                        <button class="action-btn btn-minify" id="minifyBtn">
+                            <i class="bi bi-dash-square"></i> Minify
+                        </button>
+                        <button class="action-btn btn-copy" id="copyBtn">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                        <button class="action-btn btn-clear" id="clearBtn">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                    </div>
+                    
+                    <textarea class="editor-area" id="jsonInput" placeholder='Paste your JSON here...'></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-check-circle"></i> Formatted Output</h5>
+                </div>
+                <div class="card-body">
+                    <div class="success-message" id="successMessage">
+                        <strong><i class="bi bi-check-circle"></i> Success!</strong>
+                        <span id="successText"></span>
+                    </div>
+                    
+                    <!-- Options Panel -->
+                    <div class="options-panel">
+                        <div class="option-group">
+                            <label class="option-label">Indentation:</label>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="indent" id="indent2" value="2" checked>
+                                <label class="btn btn-outline-primary btn-sm" for="indent2">2 Spaces</label>
+                                
+                                <input type="radio" class="btn-check" name="indent" id="indent4" value="4">
+                                <label class="btn btn-outline-primary btn-sm" for="indent4">4 Spaces</label>
+                                
+                                <input type="radio" class="btn-check" name="indent" id="indent8" value="8">
+                                <label class="btn btn-outline-primary btn-sm" for="indent8">8 Spaces</label>
+                            </div>
+                        </div>
+                        
+                        <div class="option-group">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sortKeys">
+                                <label class="form-check-label" for="sortKeys">
+                                    Sort keys alphabetically
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Output Display -->
+                    <div class="output-container">
+                        <button class="copy-floating-btn" id="copyOutputBtn" style="display: none;">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                        <pre id="jsonOutput" class="editor-area"><code class="language-json">Formatted JSON will appear here...</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="stats-card">
+                <h6 class="mb-3" style="color: #1e3c72; font-weight: 700;">
+                    <i class="bi bi-graph-up"></i> Statistics
+                </h6>
+                <div id="statsContainer">
+                    <span class="stat-item">
+                        <i class="bi bi-file-text"></i> Lines: <strong id="statLines">0</strong>
+                    </span>
+                    <span class="stat-item">
+                        <i class="bi bi-type"></i> Characters: <strong id="statChars">0</strong>
+                    </span>
+                    <span class="stat-item">
+                        <i class="bi bi-file-earmark"></i> Size: <strong id="statSize">0 B</strong>
+                    </span>
+                    <span class="stat-item">
+                        <i class="bi bi-bookmark"></i> Objects: <strong id="statObjects">0</strong>
+                    </span>
+                    <span class="stat-item">
+                        <i class="bi bi-list-ul"></i> Arrays: <strong id="statArrays">0</strong>
+                    </span>
+                    <span class="stat-item">
+                        <i class="bi bi-key"></i> Keys: <strong id="statKeys">0</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">JSON Formatter</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+<script src="{{ url_for('static', filename='js/json_formatter.js') }}"></script>
+{% endblock %}
+

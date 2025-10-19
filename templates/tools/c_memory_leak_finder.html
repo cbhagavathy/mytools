@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}C Memory Leak Finder - MyTools{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<style>
+    .code-editor {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.8;
+        border: 2px solid #e1e8ed;
+        border-radius: 8px;
+        padding: 20px;
+        min-height: 500px;
+        max-height: 700px;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        transition: border-color 0.3s;
+        width: 100%;
+        resize: vertical;
+        tab-size: 4;
+        white-space: pre;
+        overflow-wrap: normal;
+        overflow-x: auto;
+    }
+    
+    .code-editor:focus {
+        outline: none;
+        border-color: #1e3c72;
+        box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.2);
+        background: #252526;
+    }
+    
+    .code-editor::placeholder {
+        color: #858585;
+    }
+    
+    .analyze-btn {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4);
+    }
+    
+    .analyze-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30, 60, 114, 0.5);
+    }
+    
+    .leak-card {
+        background: white;
+        border-radius: 12px;
+        padding: 0;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-left: 4px solid;
+        transition: all 0.3s;
+        overflow: hidden;
+    }
+    
+    .leak-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    
+    .leak-card-header {
+        padding: 15px 20px;
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.3s;
+        min-height: 60px;
+    }
+    
+    .leak-card-header:hover {
+        background: rgba(0,0,0,0.02);
+    }
+    
+    .leak-card-body {
+        padding: 0 20px 20px 20px;
+        max-height: 1000px;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out, opacity 0.3s;
+        opacity: 1;
+    }
+    
+    .leak-card-body.collapsed {
+        max-height: 0;
+        opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    
+    .toggle-icon {
+        font-size: 1.2rem;
+        transition: transform 0.3s;
+        color: #6c757d;
+    }
+    
+    .toggle-icon.collapsed {
+        transform: rotate(-90deg);
+    }
+    
+    .leak-critical {
+        border-left-color: #dc3545;
+        background: linear-gradient(135deg, #fff 0%, #fff5f5 100%);
+    }
+    
+    .leak-high {
+        border-left-color: #fd7e14;
+        background: linear-gradient(135deg, #fff 0%, #fff8f0 100%);
+    }
+    
+    .leak-medium {
+        border-left-color: #ffc107;
+        background: linear-gradient(135deg, #fff 0%, #fffbf0 100%);
+    }
+    
+    .leak-low {
+        border-left-color: #17a2b8;
+        background: linear-gradient(135deg, #fff 0%, #f0fbff 100%);
+    }
+    
+    .severity-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+    
+    .badge-critical {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    
+    .badge-high {
+        background: linear-gradient(135deg, #fd7e14 0%, #e8590c 100%);
+        color: white;
+    }
+    
+    .badge-medium {
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        color: #000;
+    }
+    
+    .badge-low {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1e3c72;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .code-snippet {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        overflow-x: auto;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    
+    .line-highlight {
+        background: rgba(255, 87, 87, 0.2);
+        display: block;
+        margin: 0 -15px;
+        padding: 0 15px;
+    }
+    
+    .leak-description {
+        color: #495057;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+    
+    .recommendation {
+        background: #e7f3ff;
+        border-left: 3px solid #0066cc;
+        padding: 12px 15px;
+        border-radius: 6px;
+        margin-top: 15px;
+    }
+    
+    .recommendation strong {
+        color: #0066cc;
+    }
+    
+    .no-leaks {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 2px solid #28a745;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        color: #155724;
+    }
+    
+    .no-leaks i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        display: block;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    
+    .btn-action {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-clear {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        color: white;
+    }
+    
+    .btn-download {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .expand-collapse-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .btn-control {
+        padding: 8px 16px;
+        border: 2px solid #1e3c72;
+        background: white;
+        color: #1e3c72;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-control:hover {
+        background: #1e3c72;
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm mb-2">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <h2 class="mb-0"><i class="bi bi-bug"></i> C Memory Leak Finder</h2>
+            <p class="text-muted">Detect potential memory leaks in C code</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Input Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white;">
+                    <h5 class="mb-0"><i class="bi bi-code-slash"></i> C Code Input</h5>
+                </div>
+                <div class="card-body">
+                    <div class="action-buttons">
+                        <button class="btn-action analyze-btn" id="analyzeBtn">
+                            <i class="bi bi-search"></i> Analyze Code
+                        </button>
+                        <button class="btn-action btn-clear" id="clearBtn">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                    </div>
+                    
+                    <textarea class="code-editor" id="codeInput" placeholder="Paste your C code here...
+
+Example:
+void example() {
+    char *ptr = malloc(100);
+    // Missing free(ptr) - Memory leak!
+}"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Analysis Results</h5>
+                </div>
+                <div class="card-body">
+                    <div id="resultsContainer">
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-search" style="font-size: 3rem; opacity: 0.5;"></i>
+                            <p class="mt-3">Click "Analyze Code" to detect memory leaks</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="row mt-4" id="statsSection" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white;">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Summary Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="stats-grid" id="statsGrid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Memory Leak Finder</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+<script src="{{ url_for('static', filename='js/c_memory_leak_finder.js') }}?v={{ range(1, 999999) | random }}"></script>
+{% endblock %}
+

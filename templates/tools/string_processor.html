@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}String Processor - MyTools{% endblock %}
+
+{% block extra_css %}
+<style>
+    .left-panel {
+        height: calc(100vh - 200px);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    .right-panel {
+        height: calc(100vh - 200px);
+    }
+    
+    .transform-card {
+        transition: all 0.2s ease;
+        cursor: pointer;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .transform-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        background-color: #f8f9fa;
+        border-color: #667eea;
+    }
+    
+    .transform-card.applied {
+        border: 2px solid #28a745;
+        background-color: #e8f5e9;
+    }
+    
+    .transform-card .card-body {
+        padding: 10px 12px;
+    }
+    
+    .transform-icon {
+        font-size: 1.1rem;
+        color: #667eea;
+        margin-right: 10px;
+    }
+    
+    .transform-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0;
+        color: #333;
+    }
+    
+    .transform-desc {
+        font-size: 0.7rem;
+        color: #6c757d;
+        margin: 0;
+    }
+    
+    .transform-content {
+        display: flex;
+        align-items: center;
+    }
+    
+    .transform-info {
+        flex: 1;
+    }
+    
+    #inputText, #outputText {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        height: 100%;
+    }
+    
+    .badge-group {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    
+    .stats-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 15px;
+        border-radius: 10px;
+        color: white;
+        margin-bottom: 15px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .stat-item {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 8px;
+        border-radius: 6px;
+        text-align: center;
+    }
+    
+    .stat-item .label {
+        font-size: 0.7rem;
+        opacity: 0.9;
+        display: block;
+    }
+    
+    .stat-item .value {
+        font-size: 1.1rem;
+        font-weight: bold;
+        display: block;
+        margin-top: 2px;
+    }
+    
+    .section-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 15px 0 8px 0;
+        padding-bottom: 5px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .text-area-wrapper {
+        height: calc(50% - 10px);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .text-area-wrapper:first-child {
+        margin-bottom: 20px;
+    }
+    
+    .text-area-wrapper .card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .text-area-wrapper .card-body {
+        flex: 1;
+        padding: 0;
+        display: flex;
+    }
+    
+    .text-area-wrapper textarea {
+        border: none;
+        resize: none;
+        flex: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm mb-2">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <h3 class="mb-0"><i class="bi bi-textarea-t"></i> String Processor</h3>
+            <p class="text-muted mb-0 small">Transform and analyze your text with powerful string operations</p>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="row g-3">
+        <!-- Left Panel - Transformations -->
+        <div class="col-lg-4">
+            <div class="left-panel">
+                <!-- Statistics Section -->
+                <div class="stats-section">
+                    <h6 class="mb-0"><i class="bi bi-graph-up"></i> Text Analysis</h6>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="label">Characters</span>
+                            <span class="value" id="statChars">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Letters</span>
+                            <span class="value" id="statLetters">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Numbers</span>
+                            <span class="value" id="statNumbers">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Spaces</span>
+                            <span class="value" id="statSpaces">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Special</span>
+                            <span class="value" id="statSpecial">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Unique</span>
+                            <span class="value" id="statUnique">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case Transformations -->
+                <div class="section-title"><i class="bi bi-type"></i> Case Conversions</div>
+                
+                <div class="card transform-card" data-transform="uppercase">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-type transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">UPPERCASE</div>
+                                <div class="transform-desc">Convert all to uppercase</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="lowercase">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-type transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">lowercase</div>
+                                <div class="transform-desc">Convert all to lowercase</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="titlecase">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-type-bold transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Title Case</div>
+                                <div class="transform-desc">Capitalize each word</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="sentencecase">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-fonts transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Sentence case</div>
+                                <div class="transform-desc">First letter capital</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Naming Conventions -->
+                <div class="section-title"><i class="bi bi-code-slash"></i> Naming Conventions</div>
+
+                <div class="card transform-card" data-transform="camelcase">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-code-slash transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">camelCase</div>
+                                <div class="transform-desc">Programming camelCase</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="pascalcase">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-code-slash transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">PascalCase</div>
+                                <div class="transform-desc">Programming PascalCase</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="snakecase">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-code transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">snake_case</div>
+                                <div class="transform-desc">Python/Ruby style</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="kebabcase">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-dash-lg transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">kebab-case</div>
+                                <div class="transform-desc">CSS/URL friendly</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="constantcase">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-signpost transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">CONSTANT_CASE</div>
+                                <div class="transform-desc">For constants</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Manipulations -->
+                <div class="section-title"><i class="bi bi-magic"></i> Text Manipulations</div>
+
+                <div class="card transform-card" data-transform="reverse">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-arrow-left-right transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Reverse</div>
+                                <div class="transform-desc">Reverse entire text</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="trim">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-crop transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Trim</div>
+                                <div class="transform-desc">Remove leading/trailing spaces</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="removespaces">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-subtract transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Remove Spaces</div>
+                                <div class="transform-desc">Remove all spaces</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="removeduplicates">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-funnel transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Remove Duplicates</div>
+                                <div class="transform-desc">Remove duplicate lines</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="sortlines">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-sort-alpha-down transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Sort Lines</div>
+                                <div class="transform-desc">Sort alphabetically</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="reversewords">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-arrow-repeat transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Reverse Words</div>
+                                <div class="transform-desc">Reverse word order</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="extractnumbers">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-123 transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Extract Numbers</div>
+                                <div class="transform-desc">Extract all numbers</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Encoding/Decoding -->
+                <div class="section-title"><i class="bi bi-lock"></i> Encoding & Decoding</div>
+
+                <div class="card transform-card" data-transform="base64encode">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-lock transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Base64 Encode</div>
+                                <div class="transform-desc">Encode to Base64</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="base64decode">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-unlock transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">Base64 Decode</div>
+                                <div class="transform-desc">Decode from Base64</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="urlencode">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-link-45deg transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">URL Encode</div>
+                                <div class="transform-desc">Encode for URLs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card transform-card" data-transform="urldecode">
+                    <div class="card-body">
+                        <div class="transform-content">
+                            <i class="bi bi-link transform-icon"></i>
+                            <div class="transform-info">
+                                <div class="transform-title">URL Decode</div>
+                                <div class="transform-desc">Decode from URLs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Input/Output -->
+        <div class="col-lg-8">
+            <div class="right-panel">
+                <!-- Input Text -->
+                <div class="text-area-wrapper">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="bi bi-pencil-square"></i> Input Text</h6>
+                                <div class="badge-group">
+                                    <span class="badge bg-light text-dark" id="inputLength">Length: 0</span>
+                                    <span class="badge bg-light text-dark" id="inputWords">Words: 0</span>
+                                    <span class="badge bg-light text-dark" id="inputLines">Lines: 0</span>
+                                    <button class="btn btn-sm btn-light" id="clearInputBtn">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <textarea id="inputText" class="form-control" 
+                                      placeholder="Enter your text here to process...
+
+Example:
+Hello World! This is a Sample Text.
+Try different transformations..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Output Text -->
+                <div class="text-area-wrapper">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="bi bi-code-square"></i> Output Text</h6>
+                                <div class="badge-group">
+                                    <span class="badge bg-light text-dark" id="outputLength">Length: 0</span>
+                                    <span class="badge bg-light text-dark" id="outputWords">Words: 0</span>
+                                    <span class="badge bg-light text-dark" id="outputLines">Lines: 0</span>
+                                    <button class="btn btn-sm btn-light" id="copyOutputBtn">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <textarea id="outputText" class="form-control" 
+                                      readonly
+                                      placeholder="Transformed text will appear here..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert">
+        <div class="toast-header">
+            <i class="bi bi-check-circle-fill text-success me-2"></i>
+            <strong class="me-auto">Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            Action completed successfully!
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/string_processor.js') }}"></script>
+{% endblock %}
+

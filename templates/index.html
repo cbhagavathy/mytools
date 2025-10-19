@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+
+{% block title %}MyTools - Home{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 mb-3">
+                <i class="bi bi-tools text-primary"></i> Welcome to MyTools
+            </h1>
+            <p class="lead text-muted">Your collection of handy web utilities</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Markdown Converter Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-primary text-white rounded-3 p-3 me-3">
+                            <i class="bi bi-markdown fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">Markdown Converter</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Convert Markdown text to formatted HTML. Preview the rendered output and copy it for use in your documents.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/markdown-converter" class="btn btn-primary w-100">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- XML Formatter Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-warning text-white rounded-3 p-3 me-3">
+                            <i class="bi bi-code-slash fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">XML Formatter</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Format and beautify XML content. Validate XML syntax, minify, and easily copy formatted output.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/xml-formatter" class="btn btn-warning w-100">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- EPOCH Converter Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-info text-white rounded-3 p-3 me-3">
+                            <i class="bi bi-clock-history fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">EPOCH Converter</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Convert between EPOCH/Unix timestamps and human-readable dates. Supports seconds and milliseconds.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/epoch-converter" class="btn btn-info w-100 text-white">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Compare Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-dark text-white rounded-3 p-3 me-3">
+                            <i class="bi bi-file-diff fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">File Compare</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Compare two text files or content blocks. Side-by-side and unified diff views with detailed statistics.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/file-compare" class="btn btn-dark w-100">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- String Processor Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-warning text-white rounded-3 p-3 me-3">
+                            <i class="bi bi-textarea-t fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">String Processor</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Transform and analyze text with 20+ operations. Case conversions, encoding/decoding, and text manipulations.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/string-processor" class="btn btn-warning w-100">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SQL Formatter Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-success text-white rounded-3 p-3 me-3">
+                            <i class="bi bi-database fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">SQL Formatter</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Format and beautify SQL queries with Oracle optimization. Customize indentation, keyword casing, and more.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/sql-formatter" class="btn btn-success w-100">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- C Code Formatter Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-danger text-white rounded-3 p-3 me-3">
+                            <i class="bi bi-code-slash fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">C Code Formatter</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Format and beautify C/C++ code with multiple brace styles. K&R, Allman, GNU, and Whitesmiths styles supported.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/c-formatter" class="btn btn-danger w-100">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- C Function Flowchart Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-purple text-white rounded-3 p-3 me-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;">
+                            <i class="bi bi-diagram-3 fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">C Function Flowchart</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Visualize function call relationships in C code. Generate interactive flowcharts showing function dependencies.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/c-flowchart" class="btn btn-purple w-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- C Loop Analyzer Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box text-white rounded-3 p-3 me-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;">
+                            <i class="bi bi-arrow-repeat fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">C Loop Analyzer</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Analyze loops in C code. Identify functions with loops and which functions are called within them.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/c-loop-analyzer" class="btn w-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Tester Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box text-white rounded-3 p-3 me-3" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;">
+                            <i class="bi bi-send fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">API Tester</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Test REST APIs like Postman. Send GET, POST, PUT, DELETE requests with custom headers and body.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/api-tester" class="btn w-100" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Base64 Converter Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box text-white rounded-3 p-3 me-3" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%) !important;">
+                            <i class="bi bi-file-binary fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">Base64 Converter</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Convert between Base64 and files (PDF, Images, Text). Encode and decode with preview support.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/base64-converter" class="btn w-100" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- JSON Formatter Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box text-white rounded-3 p-3 me-3" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;">
+                            <i class="bi bi-braces fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">JSON Formatter</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Format, validate, minify JSON data. Sort keys, adjust indentation, and view detailed statistics.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/json-formatter" class="btn w-100" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white;">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- C Memory Leak Finder Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box text-white rounded-3 p-3 me-3" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;">
+                            <i class="bi bi-bug fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">C Memory Leak Finder</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Detect memory leaks in C code. Find unfreed allocations, loop issues, and get recommendations.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/c-memory-leak-finder" class="btn w-100" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- C Code Viewer Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box text-white rounded-3 p-3 me-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;">
+                            <i class="bi bi-eye fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">C Code Viewer</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Navigate C code easily. View function list, jump to functions, search within code with line numbers.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/c-code-viewer" class="btn w-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Java Code Viewer Tool -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box text-white rounded-3 p-3 me-3" style="background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%) !important;">
+                            <i class="bi bi-eye fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">Java Code Viewer</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Navigate Java code easily. View method list, jump to methods, search within code with line numbers.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/java-code-viewer" class="btn w-100" style="background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); color: white;">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Placeholder for future tools -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box text-white rounded-3 p-3 me-3" style="background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%) !important;">
+                            <i class="bi bi-file-text fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">BRM CM LogViewer</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Analyze BRM CM logs. Filter by CM process, view unique errors, search logs, and navigate easily.
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="/tools/brm-cm-logviewer" class="btn w-100" style="background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%); color: white;">
+                        Open Tool <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Placeholder for future tools -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-secondary" style="opacity: 0.6;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-secondary text-white rounded-3 p-3 me-3">
+                            <i class="bi bi-plus-lg fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">More Tools Coming</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Additional utilities will be added soon. Stay tuned for more helpful tools!
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <button class="btn btn-secondary w-100" disabled>
+                        Coming Soon
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-secondary" style="opacity: 0.6;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-secondary text-white rounded-3 p-3 me-3">
+                            <i class="bi bi-plus-lg fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">More Tools Coming</h5>
+                    </div>
+                    <p class="card-text text-muted">
+                        Additional utilities will be added soon. Stay tuned for more helpful tools!
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <button class="btn btn-secondary w-100" disabled>
+                        Coming Soon
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

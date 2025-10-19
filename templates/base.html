@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MyTools - Web Utilities{% endblock %}</title>
+    
+    <!-- Bootstrap 5.3.2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        .modern-navbar {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 20px rgba(30, 60, 114, 0.3);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            color: white !important;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-brand i {
+            font-size: 1.8rem;
+        }
+        
+        .navbar-brand:hover {
+            transform: scale(1.05);
+            color: #00d2ff !important;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            padding: 0.6rem 1.2rem !important;
+            margin: 0 0.2rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white !important;
+            transform: translateY(-2px);
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white !important;
+        }
+        
+        .dropdown-menu {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            border: none;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .dropdown-item {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .dropdown-item i {
+            margin-right: 10px;
+            color: #00d2ff;
+        }
+        
+        .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.3);
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.2);
+        }
+        
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark modern-navbar">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-tools"></i>
+                <span>MyTools</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="bi bi-house-door"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear"></i> Tools
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/tools/markdown-converter"><i class="bi bi-markdown"></i> Markdown Converter</a></li>
+                            <li><a class="dropdown-item" href="/tools/json-formatter"><i class="bi bi-braces"></i> JSON Formatter</a></li>
+                            <li><a class="dropdown-item" href="/tools/xml-formatter"><i class="bi bi-file-code"></i> XML Formatter</a></li>
+                            <li><a class="dropdown-item" href="/tools/sql-formatter"><i class="bi bi-database"></i> SQL Formatter</a></li>
+                            <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,0.2);"></li>
+                            <li><a class="dropdown-item" href="/tools/epoch-converter"><i class="bi bi-clock"></i> EPOCH Converter</a></li>
+                            <li><a class="dropdown-item" href="/tools/base64-converter"><i class="bi bi-file-binary"></i> Base64 Converter</a></li>
+                            <li><a class="dropdown-item" href="/tools/string-processor"><i class="bi bi-text-paragraph"></i> String Processor</a></li>
+                            <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,0.2);"></li>
+                            <li><a class="dropdown-item" href="/tools/c-formatter"><i class="bi bi-code-slash"></i> C Code Formatter</a></li>
+                            <li><a class="dropdown-item" href="/tools/c-flowchart"><i class="bi bi-diagram-3"></i> C Function Flowchart</a></li>
+                            <li><a class="dropdown-item" href="/tools/c-loop-analyzer"><i class="bi bi-arrow-repeat"></i> C Loop Analyzer</a></li>
+                            <li><a class="dropdown-item" href="/tools/c-memory-leak-finder"><i class="bi bi-bug"></i> C Memory Leak Finder</a></li>
+                            <li><a class="dropdown-item" href="/tools/c-code-viewer"><i class="bi bi-eye"></i> C Code Viewer</a></li>
+                            <li><a class="dropdown-item" href="/tools/java-code-viewer"><i class="bi bi-eye"></i> Java Code Viewer</a></li>
+                            <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,0.2);"></li>
+                            <li><a class="dropdown-item" href="/tools/file-compare"><i class="bi bi-files"></i> File Compare</a></li>
+                            <li><a class="dropdown-item" href="/tools/api-tester"><i class="bi bi-send"></i> API Tester</a></li>
+                            <li><a class="dropdown-item" href="/tools/brm-cm-logviewer"><i class="bi bi-file-text"></i> BRM CM LogViewer</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container-fluid py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 mt-5" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: rgba(255,255,255,0.9); box-shadow: 0 -4px 20px rgba(30, 60, 114, 0.2);">
+        <div class="container">
+            <p class="mb-2" style="font-weight: 500; font-size: 1.1rem;">
+                <i class="bi bi-tools"></i> MyTools - Your Web Utilities Collection
+            </p>
+            <p class="mb-0" style="font-size: 0.9rem; opacity: 0.8;">
+                &copy; 2025 | Built with <i class="bi bi-heart-fill" style="color: #ff6b6b;"></i> and <i class="bi bi-cup-hot-fill" style="color: #feca57;"></i>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

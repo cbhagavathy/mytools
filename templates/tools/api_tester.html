@@ -1,0 +1,767 @@
+{% extends "base.html" %}
+
+{% block title %}API Tester - MyTools{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: #f5f7fa;
+    }
+    
+    .api-tester-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    
+    .sidebar-collections {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 0;
+        min-height: calc(100vh - 200px);
+    }
+    
+    .sidebar-header {
+        padding: 20px;
+        background: rgba(0,0,0,0.1);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .sidebar-body {
+        padding: 15px;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .sidebar-footer {
+        padding: 15px;
+        background: rgba(0,0,0,0.1);
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .method-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        display: inline-block;
+        min-width: 65px;
+        text-align: center;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .method-GET { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; }
+    .method-POST { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+    .method-PUT { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+    .method-PATCH { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
+    .method-DELETE { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+    .method-HEAD { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); color: white; }
+    .method-OPTIONS { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; }
+    
+    .url-input-group {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 25px;
+        align-items: stretch;
+    }
+    
+    .url-input {
+        flex: 1;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 14px;
+        padding: 12px 16px;
+        border: 2px solid #e1e8ed;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+    
+    .url-input:focus {
+        border-color: #1e3c72;
+        box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.2);
+        outline: none;
+    }
+    
+    .method-select {
+        min-width: 140px;
+        font-weight: 600;
+        border: 2px solid #e1e8ed;
+        border-radius: 8px;
+        padding: 12px 16px;
+        transition: all 0.3s;
+    }
+    
+    .method-select:focus {
+        border-color: #1e3c72;
+        box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.2);
+        outline: none;
+    }
+    
+    .send-btn {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4);
+    }
+    
+    .send-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30, 60, 114, 0.5);
+    }
+    
+    .send-btn:active {
+        transform: translateY(0);
+    }
+    
+    .tabs {
+        border-bottom: 2px solid #e1e8ed;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 5px;
+    }
+    
+    .tab-button {
+        background: transparent;
+        border: none;
+        padding: 12px 24px;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        font-weight: 600;
+        color: #6c757d;
+        transition: all 0.3s;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .tab-button:hover {
+        background: #f8f9fa;
+        color: #1e3c72;
+    }
+    
+    .tab-button.active {
+        color: #1e3c72;
+        border-bottom-color: #1e3c72;
+        background: #e3eaf1;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .header-row, .param-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 8px;
+        align-items: center;
+    }
+    
+    .header-row input, .param-row input {
+        flex: 1;
+        padding: 6px 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.9rem;
+    }
+    
+    .header-row .form-check {
+        min-width: 40px;
+    }
+    
+    .body-editor {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        min-height: 200px;
+    }
+    
+    .response-section {
+        margin-top: 20px;
+        display: none;
+    }
+    
+    .response-section.show {
+        display: block;
+    }
+    
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .status-success { 
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); 
+        color: #155724;
+        border: 2px solid #b1dfbb;
+    }
+    .status-redirect { 
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%); 
+        color: #0c5460; 
+        border: 2px solid #abdde5;
+    }
+    .status-client-error { 
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); 
+        color: #721c24; 
+        border: 2px solid #f1b0b7;
+    }
+    .status-server-error { 
+        background: linear-gradient(135deg, #f5c6cb 0%, #f1aeb5 100%); 
+        color: #721c24; 
+        border: 2px solid #ea868f;
+    }
+    
+    .response-stats {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+        flex-wrap: wrap;
+    }
+    
+    .response-stats span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    
+    .response-stats span i {
+        color: #1e3c72;
+        font-size: 1.1rem;
+    }
+    
+    .response-body {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 15px;
+        max-height: 400px;
+        overflow: auto;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    
+    .response-body pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    
+    .history-item {
+        padding: 14px;
+        border: 2px solid #e1e8ed;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: white;
+    }
+    
+    .history-item:hover {
+        background: linear-gradient(135deg, #e3eaf1 0%, #d4dde7 100%);
+        border-color: #1e3c72;
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(30, 60, 114, 0.25);
+    }
+    
+    .history-method {
+        font-weight: 700;
+        margin-right: 12px;
+    }
+    
+    .history-url {
+        color: #495057;
+        font-size: 0.85rem;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-weight: 500;
+    }
+    
+    .history-time {
+        color: #6c757d;
+        font-size: 0.75rem;
+        margin-top: 8px;
+        font-weight: 500;
+    }
+    
+    .collection-folder {
+        padding: 12px 15px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.15);
+    }
+    
+    .collection-folder:hover {
+        background: rgba(255,255,255,0.2);
+        transform: translateX(5px);
+    }
+    
+    .collection-folder.active {
+        background: rgba(255,255,255,0.25);
+        border-color: rgba(255,255,255,0.3);
+    }
+    
+    .collection-item {
+        padding: 10px 15px 10px 30px;
+        margin-bottom: 6px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid transparent;
+    }
+    
+    .collection-item:hover {
+        background: rgba(255,255,255,0.15);
+        transform: translateX(5px);
+        border-color: rgba(255,255,255,0.2);
+    }
+    
+    .collection-item.active {
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.3);
+    }
+    
+    .folder-icon {
+        margin-right: 10px;
+        font-size: 1.1rem;
+    }
+    
+    .folder-actions {
+        opacity: 0;
+        display: flex;
+        gap: 5px;
+        transition: opacity 0.3s;
+    }
+    
+    .collection-folder:hover .folder-actions,
+    .collection-item:hover .item-actions {
+        opacity: 1;
+    }
+    
+    .item-actions {
+        opacity: 0;
+        display: flex;
+        gap: 5px;
+        transition: opacity 0.3s;
+    }
+    
+    .action-btn {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        border: none;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+    
+    .action-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.1);
+    }
+    
+    .sidebar-btn {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 8px;
+        border: 1px solid rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.1);
+        color: white;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .sidebar-btn:hover {
+        background: rgba(255,255,255,0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    .sidebar-btn i {
+        margin-right: 8px;
+    }
+    
+    .request-builder-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    
+    .history-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        background: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm mb-2">
+                <i class="bi bi-arrow-left"></i> Back to Home
+            </a>
+            <h2 class="mb-1" style="font-weight: 700; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                <i class="bi bi-send-fill"></i> API Tester
+            </h2>
+            <p class="text-muted">Professional REST API testing tool</p>
+        </div>
+    </div>
+
+    <div class="api-tester-container">
+        <div class="row g-0">
+            <!-- Collections Sidebar -->
+            <div class="col-lg-3 sidebar-collections">
+                <div class="sidebar-header">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0" style="font-weight: 700;">
+                            <i class="bi bi-folder2"></i> Collections
+                        </h5>
+                        <button class="btn btn-sm" id="newFolderBtn" title="New Folder" style="background: rgba(255,255,255,0.2); color: white; border: none;">
+                            <i class="bi bi-folder-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="sidebar-body">
+                    <div id="collectionsContainer">
+                        <p class="text-center small" style="opacity: 0.7;">No collections yet</p>
+                    </div>
+                </div>
+                <div class="sidebar-footer">
+                    <button class="sidebar-btn" id="saveRequestBtn">
+                        <i class="bi bi-save"></i> Save Request
+                    </button>
+                    <button class="sidebar-btn" id="exportBtn">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                    <button class="sidebar-btn" id="importBtn">
+                        <i class="bi bi-upload"></i> Import
+                    </button>
+                    <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                </div>
+            </div>
+
+            <!-- Request Builder -->
+            <div class="col-lg-6" style="background: white; padding: 30px;">
+                <h5 class="mb-4" style="font-weight: 700; color: #1e3c72;">
+                    <i class="bi bi-gear-fill"></i> Request Builder
+                </h5>
+                <!-- URL Input -->
+                <div class="url-input-group">
+                    <select class="method-select" id="methodSelect">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="HEAD">HEAD</option>
+                        <option value="OPTIONS">OPTIONS</option>
+                    </select>
+                    <input type="text" class="url-input" id="urlInput" 
+                           placeholder="https://api.example.com/endpoint">
+                    <button class="send-btn" id="sendBtn">
+                        <i class="bi bi-send-fill"></i> Send
+                    </button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="params">
+                        <i class="bi bi-list-ul"></i> Params
+                    </button>
+                    <button class="tab-button" data-tab="auth">
+                        <i class="bi bi-shield-lock"></i> Auth
+                    </button>
+                    <button class="tab-button" data-tab="headers">
+                        <i class="bi bi-code-square"></i> Headers
+                    </button>
+                    <button class="tab-button" data-tab="body">
+                        <i class="bi bi-file-text"></i> Body
+                    </button>
+                </div>
+
+                <!-- Params Tab -->
+                <div class="tab-content active" id="tab-params">
+                        <div id="paramsContainer">
+                            <div class="param-row">
+                                <input type="checkbox" class="form-check-input">
+                                <input type="text" placeholder="Key" class="param-key">
+                                <input type="text" placeholder="Value" class="param-value">
+                                <button class="btn btn-sm btn-outline-danger remove-param" style="display:none;">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary mt-2" id="addParamBtn">
+                            <i class="bi bi-plus"></i> Add Parameter
+                        </button>
+                    </div>
+
+                    <!-- Auth Tab -->
+                    <div class="tab-content" id="tab-auth">
+                        <select class="form-select mb-3" id="authType">
+                            <option value="none">No Auth</option>
+                            <option value="bearer">Bearer Token</option>
+                            <option value="basic">Basic Auth</option>
+                            <option value="apikey">API Key</option>
+                        </select>
+                        
+                        <div id="authBearer" style="display:none;">
+                            <label class="form-label">Token</label>
+                            <input type="text" class="form-control" id="bearerToken" 
+                                   placeholder="Enter your Bearer token">
+                        </div>
+                        
+                        <div id="authBasic" style="display:none;">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control mb-2" id="basicUsername" 
+                                   placeholder="Username">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" id="basicPassword" 
+                                   placeholder="Password">
+                        </div>
+                        
+                        <div id="authApiKey" style="display:none;">
+                            <label class="form-label">Key</label>
+                            <input type="text" class="form-control mb-2" id="apiKeyName" 
+                                   placeholder="e.g., X-API-Key">
+                            <label class="form-label">Value</label>
+                            <input type="text" class="form-control mb-2" id="apiKeyValue" 
+                                   placeholder="Your API key">
+                            <label class="form-label">Add to</label>
+                            <select class="form-select" id="apiKeyLocation">
+                                <option value="header">Header</option>
+                                <option value="query">Query Params</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Headers Tab -->
+                    <div class="tab-content" id="tab-headers">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary active" id="headerKeyValueBtn">
+                                    <i class="bi bi-list-ul"></i> Key-Value
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" id="headerBulkBtn">
+                                    <i class="bi bi-code-square"></i> Bulk Edit
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Key-Value Mode -->
+                        <div id="headerKeyValueMode">
+                            <div id="headersContainer">
+                                <div class="header-row">
+                                    <input type="checkbox" class="form-check-input" checked>
+                                    <input type="text" placeholder="Key" class="header-key" value="Content-Type">
+                                    <input type="text" placeholder="Value" class="header-value" value="application/json">
+                                    <button class="btn btn-sm btn-outline-danger remove-header" style="display:none;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary mt-2" id="addHeaderBtn">
+                                <i class="bi bi-plus"></i> Add Header
+                            </button>
+                        </div>
+                        
+                        <!-- Bulk Edit Mode -->
+                        <div id="headerBulkMode" style="display: none;">
+                            <textarea class="form-control body-editor" id="headerBulkEdit" 
+                                      placeholder="Enter headers in format:
+Content-Type: application/json
+Authorization: Bearer your-token
+X-API-Key: your-key
+
+One header per line in 'Key: Value' format"
+                                      style="min-height: 250px;"></textarea>
+                            <small class="text-muted mt-2 d-block">
+                                <i class="bi bi-info-circle"></i> Enter one header per line in format: <code>Key: Value</code>
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Body Tab -->
+                    <div class="tab-content" id="tab-body">
+                        <select class="form-select mb-3" id="bodyType">
+                            <option value="none">None</option>
+                            <option value="json">JSON</option>
+                            <option value="form">Form Data</option>
+                            <option value="raw">Raw Text</option>
+                        </select>
+                        
+                        <textarea class="form-control body-editor" id="bodyContent" 
+                                  placeholder="Enter request body"></textarea>
+                                  
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-secondary" id="formatJsonBtn">
+                                <i class="bi bi-code"></i> Format JSON
+                            </button>
+                        </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="col-lg-3 history-card" style="padding: 30px;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0" style="font-weight: 700; color: #1e3c72;">
+                        <i class="bi bi-clock-history"></i> History
+                    </h5>
+                    <button class="btn btn-sm btn-outline-danger" id="clearHistoryBtn">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                <div style="max-height: 600px; overflow-y: auto;">
+                    <div id="historyContainer">
+                        <p class="text-muted text-center">No requests yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Response Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="response-section" id="responseSection" style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0" style="font-weight: 700; color: #1e3c72;">
+                        <i class="bi bi-arrow-down-circle-fill"></i> Response
+                    </h5>
+                    <button class="btn btn-sm" id="downloadResponseBtn" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border: none;">
+                        <i class="bi bi-download"></i> Download
+                    </button>
+                </div>
+                
+                <!-- Response Stats -->
+                    <div class="response-stats">
+                        <span>
+                            <i class="bi bi-flag"></i>
+                            Status: <span class="status-badge" id="responseStatus">200 OK</span>
+                        </span>
+                        <span>
+                            <i class="bi bi-clock"></i>
+                            Time: <strong id="responseTime">0</strong> ms
+                        </span>
+                        <span>
+                            <i class="bi bi-file-earmark"></i>
+                            Size: <strong id="responseSize">0</strong> bytes
+                        </span>
+                    </div>
+
+                    <!-- Response Tabs -->
+                    <div class="tabs">
+                        <button class="tab-button active" data-tab="response-body">Body</button>
+                        <button class="tab-button" data-tab="response-headers">Headers</button>
+                    </div>
+
+                    <!-- Response Body -->
+                    <div class="tab-content active" id="tab-response-body">
+                        <div class="response-body" id="responseBody">
+                            <pre></pre>
+                        </div>
+                    </div>
+
+                <!-- Response Headers -->
+                <div class="tab-content" id="tab-response-headers">
+                    <div class="response-body" id="responseHeaders">
+                        <pre></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Folder Modal -->
+<div class="modal fade" id="newFolderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Collection Folder</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">Folder Name</label>
+                <input type="text" class="form-control" id="newFolderName" placeholder="e.g., User API, Auth Endpoints">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createFolderBtn">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save Request Modal -->
+<div class="modal fade" id="saveRequestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Save Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">Request Name</label>
+                <input type="text" class="form-control mb-3" id="requestName" placeholder="e.g., Get User Profile">
+                
+                <label class="form-label">Select Folder</label>
+                <select class="form-select" id="folderSelect">
+                    <option value="">-- Select a folder --</option>
+                </select>
+                <small class="text-muted">Create a folder first if you don't see any options</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">API Tester</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/api_tester.js') }}"></script>
+{% endblock %}
+

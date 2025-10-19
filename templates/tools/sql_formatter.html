@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}SQL Formatter - MyTools{% endblock %}
+
+{% block extra_css %}
+<!-- Prism CSS for syntax highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+
+<style>
+    .code-display {
+        max-height: 600px;
+        overflow-y: auto;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+    }
+    
+    .code-display pre {
+        margin: 0;
+        border-radius: 4px;
+    }
+    
+    .code-display pre code {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    
+    #sqlInput {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    
+    .option-group {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .option-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .stat-box {
+        text-align: center;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .stat-box h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .stat-box small {
+        opacity: 0.9;
+    }
+    
+    .keyword-highlight {
+        color: #0000ff;
+        font-weight: bold;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm mb-2">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <h2 class="mb-0"><i class="bi bi-database"></i> SQL Formatter</h2>
+            <p class="text-muted">Format and beautify SQL queries (Oracle optimized)</p>
+        </div>
+    </div>
+
+    <!-- Action Buttons and Options -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Format Options -->
+                        <div class="col-md-3">
+                            <div class="option-group">
+                                <label class="option-label">Keyword Case</label>
+                                <select id="keywordCase" class="form-select form-select-sm">
+                                    <option value="upper" selected>UPPERCASE</option>
+                                    <option value="lower">lowercase</option>
+                                    <option value="title">Title Case</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="option-group">
+                                <label class="option-label">Indentation</label>
+                                <select id="indentSize" class="form-select form-select-sm">
+                                    <option value="2">2 spaces</option>
+                                    <option value="4" selected>4 spaces</option>
+                                    <option value="tab">Tab</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="option-group">
+                                <label class="option-label">Line Break</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="breakBeforeComma" checked>
+                                    <label class="form-check-label" for="breakBeforeComma">
+                                        Break before comma
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="option-group">
+                                <label class="option-label">Actions</label>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary btn-sm" id="formatBtn">
+                                        <i class="bi bi-magic"></i> Format
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-outline-secondary btn-sm" id="clearBtn">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" id="minifyBtn">
+                            <i class="bi bi-dash-square"></i> Minify
+                        </button>
+                        <button class="btn btn-success btn-sm" id="copyBtn">
+                            <i class="bi bi-clipboard"></i> Copy Formatted SQL
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Input Column -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square"></i> SQL Input</h5>
+                </div>
+                <div class="card-body p-0">
+                    <textarea id="sqlInput" class="form-control border-0 rounded-0" 
+                              rows="25" 
+                              placeholder="Paste your SQL query here...
+
+Example:
+SELECT e.employee_id,e.first_name,e.last_name,d.department_name,j.job_title FROM employees e INNER JOIN departments d ON e.department_id=d.department_id INNER JOIN jobs j ON e.job_id=j.job_id WHERE e.salary>50000 ORDER BY e.employee_id;"></textarea>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Supports Oracle SQL syntax
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Column -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-code-square"></i> Formatted SQL</h5>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Syntax Highlighted Output -->
+                    <div id="sqlOutputHighlighted" class="code-display">
+                        <pre class="line-numbers"><code class="language-sql" id="sqlOutputCode"><!-- Formatted SQL will appear here... --></code></pre>
+                    </div>
+                    
+                    <!-- Hidden textarea for copying -->
+                    <textarea id="sqlOutput" class="form-control border-0 rounded-0" 
+                              rows="25" 
+                              readonly
+                              style="display: none;"
+                              placeholder="Formatted SQL will appear here..."></textarea>
+                </div>
+                <div class="card-footer bg-light" id="outputFooter" style="display: none;">
+                    <small class="text-success">
+                        <i class="bi bi-check-circle"></i> <span id="outputMessage">SQL formatted successfully</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mt-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Query Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="stat-box">
+                                <h4 id="lineCount">0</h4>
+                                <small>Lines</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <h4 id="charCount">0</h4>
+                                <small>Characters</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                <h4 id="keywordCount">0</h4>
+                                <small>SQL Keywords</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-box" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                                <h4 id="tableCount">0</h4>
+                                <small>Tables Detected</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert">
+        <div class="toast-header">
+            <i class="bi bi-check-circle-fill text-success me-2"></i>
+            <strong class="me-auto">Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            Action completed successfully!
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Prism JS for syntax highlighting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="{{ url_for('static', filename='js/sql_formatter.js') }}"></script>
+{% endblock %}
+

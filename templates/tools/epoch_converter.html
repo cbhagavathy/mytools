@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}EPOCH Converter - MyTools{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center">
+                <a href="/" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+                <h2 class="mb-0">
+                    <i class="bi bi-clock-history text-primary"></i> EPOCH / Unix Timestamp Converter
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Timestamp Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm bg-info bg-gradient text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-2"><i class="bi bi-clock"></i> Current Timestamp</h5>
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div>
+                                    <small>Seconds:</small>
+                                    <h4 class="mb-0" id="currentEpochSeconds">-</h4>
+                                </div>
+                                <div>
+                                    <small>Milliseconds:</small>
+                                    <h4 class="mb-0" id="currentEpochMillis">-</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                            <p class="mb-1" id="currentDateTime">-</p>
+                            <small id="currentTimezone">-</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- EPOCH to DateTime -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-arrow-right"></i> EPOCH to DateTime</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="epochInput" class="form-label">Enter EPOCH Timestamp</label>
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="epochInput" 
+                                   placeholder="e.g., 1609459200 or 1609459200000">
+                            <button class="btn btn-primary" id="convertEpochBtn">
+                                <i class="bi bi-arrow-right-circle"></i> Convert
+                            </button>
+                        </div>
+                        <small class="text-muted">Supports both seconds and milliseconds</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <button class="btn btn-sm btn-outline-primary me-2" id="useCurrentEpochBtn">
+                            <i class="bi bi-clock"></i> Use Current
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="clearEpochBtn">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                    </div>
+
+                    <!-- Results -->
+                    <div id="epochResults" style="display: none;">
+                        <hr>
+                        <h6 class="text-success"><i class="bi bi-check-circle"></i> Conversion Result</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Detected Format:</label>
+                            <p class="mb-0" id="timestampType">-</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="bi bi-globe"></i> UTC Time:</label>
+                            <div class="result-box">
+                                <p class="mb-1" id="utcReadable">-</p>
+                                <small class="text-muted" id="utcFull">-</small>
+                                <br>
+                                <small class="text-muted font-monospace" id="utcIso">-</small>
+                            </div>
+                            <button class="btn btn-sm btn-success mt-2" id="copyUtcBtn">
+                                <i class="bi bi-clipboard"></i> Copy UTC
+                            </button>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="bi bi-geo-alt"></i> Local Time:</label>
+                            <div class="result-box">
+                                <p class="mb-1" id="localReadable">-</p>
+                                <small class="text-muted" id="localFull">-</small>
+                                <br>
+                                <small class="text-muted font-monospace" id="localIso">-</small>
+                                <br>
+                                <small class="text-info" id="localTimezone">-</small>
+                            </div>
+                            <button class="btn btn-sm btn-success mt-2" id="copyLocalBtn">
+                                <i class="bi bi-clipboard"></i> Copy Local
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DateTime to EPOCH -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-arrow-left"></i> DateTime to EPOCH</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="dateTimeInput" class="form-label">Enter Date & Time</label>
+                        <input type="text" 
+                               class="form-control form-control-lg" 
+                               id="dateTimeInput" 
+                               placeholder="e.g., 2021-01-01 00:00:00">
+                        <small class="text-muted">Format: YYYY-MM-DD HH:MM:SS</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dateTimePickerInput" class="form-label">Or use Date/Time Picker</label>
+                        <input type="datetime-local" 
+                               class="form-control" 
+                               id="dateTimePickerInput">
+                    </div>
+
+                    <div class="mb-3">
+                        <button class="btn btn-success" id="convertDateTimeBtn">
+                            <i class="bi bi-arrow-left-circle"></i> Convert to EPOCH
+                        </button>
+                        <button class="btn btn-outline-secondary" id="clearDateTimeBtn">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <button class="btn btn-sm btn-outline-success me-2" id="useNowBtn">
+                            <i class="bi bi-clock"></i> Use Now
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" id="useTodayBtn">
+                            <i class="bi bi-calendar"></i> Use Today (00:00:00)
+                        </button>
+                    </div>
+
+                    <!-- Results -->
+                    <div id="dateTimeResults" style="display: none;">
+                        <hr>
+                        <h6 class="text-success"><i class="bi bi-check-circle"></i> Conversion Result</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Parsed DateTime:</label>
+                            <p class="mb-0" id="parsedDateTime">-</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="bi bi-stopwatch"></i> EPOCH Seconds:</label>
+                            <div class="result-box">
+                                <h5 class="mb-0 font-monospace" id="epochSeconds">-</h5>
+                            </div>
+                            <button class="btn btn-sm btn-success mt-2" id="copySecondsBtn">
+                                <i class="bi bi-clipboard"></i> Copy Seconds
+                            </button>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="bi bi-stopwatch"></i> EPOCH Milliseconds:</label>
+                            <div class="result-box">
+                                <h5 class="mb-0 font-monospace" id="epochMilliseconds">-</h5>
+                            </div>
+                            <button class="btn btn-sm btn-success mt-2" id="copyMillisecondsBtn">
+                                <i class="bi bi-clipboard"></i> Copy Milliseconds
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> About EPOCH Time</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>What is EPOCH Time?</h6>
+                            <p class="small text-muted">
+                                Unix time (also known as EPOCH time) is the number of seconds that have elapsed since 
+                                January 1, 1970 (midnight UTC/GMT), not counting leap seconds.
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Supported Formats:</h6>
+                            <ul class="small text-muted">
+                                <li><strong>Seconds:</strong> 10-digit number (e.g., 1609459200)</li>
+                                <li><strong>Milliseconds:</strong> 13-digit number (e.g., 1609459200000)</li>
+                                <li><strong>DateTime:</strong> YYYY-MM-DD HH:MM:SS and various formats</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast for notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notificationToast" class="toast" role="alert">
+            <div class="toast-header">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                Message
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .result-box {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        border-left: 4px solid #198754;
+        margin-top: 5px;
+    }
+    
+    .font-monospace {
+        font-family: 'Courier New', Courier, monospace;
+    }
+    
+    #currentEpochSeconds, #currentEpochMillis {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/epoch_converter.js') }}"></script>
+{% endblock %}
+

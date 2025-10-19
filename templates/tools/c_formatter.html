@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block title %}C Code Formatter - MyTools{% endblock %}
+
+{% block extra_css %}
+<!-- Prism CSS for syntax highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+
+<style>
+    .code-display {
+        max-height: 600px;
+        overflow-y: auto;
+        background-color: #1e1e1e;
+        border-radius: 4px;
+    }
+    
+    .code-display pre {
+        margin: 0;
+        border-radius: 4px;
+        background-color: #1e1e1e !important;
+    }
+    
+    .code-display pre code {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    
+    #codeInput {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        background-color: #1e1e1e;
+        color: #d4d4d4;
+        border: 1px solid #3c3c3c;
+    }
+    
+    #codeInput::placeholder {
+        color: #6a6a6a;
+    }
+    
+    .option-group {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .option-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .stat-box {
+        text-align: center;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .stat-box h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .stat-box small {
+        opacity: 0.9;
+    }
+    
+    .line-numbers .line-numbers-rows {
+        border-right: 1px solid #404040;
+    }
+    
+    /* Fullscreen styles */
+    .fullscreen-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #1e1e1e;
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+    }
+    
+    .fullscreen-container.active {
+        display: flex;
+    }
+    
+    .fullscreen-header {
+        background: #2d2d30;
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #3c3c3c;
+    }
+    
+    .fullscreen-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0;
+    }
+    
+    .fullscreen-content .code-display {
+        max-height: none;
+        height: 100%;
+    }
+    
+    .fullscreen-content pre {
+        margin: 0;
+        height: 100%;
+    }
+    
+    .fullscreen-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .fullscreen-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm mb-2">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <h2 class="mb-0"><i class="bi bi-code-slash"></i> C Code Formatter</h2>
+            <p class="text-muted">Format and beautify C/C++ source code</p>
+        </div>
+    </div>
+
+    <!-- Action Buttons and Options -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Brace Style -->
+                        <div class="col-md-3">
+                            <div class="option-group">
+                                <label class="option-label">Brace Style</label>
+                                <select id="braceStyle" class="form-select form-select-sm">
+                                    <option value="kr" selected>K&R (Kernighan & Ritchie)</option>
+                                    <option value="allman">Allman (BSD)</option>
+                                    <option value="gnu">GNU</option>
+                                    <option value="whitesmiths">Whitesmiths</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="option-group">
+                                <label class="option-label">Indentation</label>
+                                <select id="indentSize" class="form-select form-select-sm">
+                                    <option value="2">2 spaces</option>
+                                    <option value="4" selected>4 spaces</option>
+                                    <option value="8">8 spaces</option>
+                                    <option value="tab">Tab</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="option-group">
+                                <label class="option-label">Options</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="addSpaces" checked>
+                                    <label class="form-check-label" for="addSpaces">
+                                        Add spaces around operators
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="option-group">
+                                <label class="option-label">Actions</label>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary btn-sm" id="formatBtn">
+                                        <i class="bi bi-magic"></i> Format
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-outline-secondary btn-sm" id="clearBtn">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" id="minifyBtn">
+                            <i class="bi bi-dash-square"></i> Minify
+                        </button>
+                        <button class="btn btn-success btn-sm" id="copyBtn">
+                            <i class="bi bi-clipboard"></i> Copy Formatted Code
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Input Column -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square"></i> C Code Input</h5>
+                </div>
+                <div class="card-body p-0">
+                    <textarea id="codeInput" class="form-control border-0 rounded-0" 
+                              rows="25" 
+                              placeholder="Paste your C code here...
+
+Example:
+#include<stdio.h>
+int main(){int a=5,b=10;if(a<b){printf(&quot;a is less than b&quot;);}for(int i=0;i<5;i++){printf(&quot;%d&quot;,i);}return 0;}"></textarea>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Supports C and C++ syntax
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Column -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-code-square"></i> Formatted Code</h5>
+                        <button class="btn btn-sm btn-light" id="fullscreenBtn" title="View Fullscreen">
+                            <i class="bi bi-arrows-fullscreen"></i> Fullscreen
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Syntax Highlighted Output -->
+                    <div id="codeOutputHighlighted" class="code-display">
+                        <pre class="line-numbers"><code class="language-c" id="codeOutputCode">// Formatted code will appear here...</code></pre>
+                    </div>
+                    
+                    <!-- Hidden textarea for copying -->
+                    <textarea id="codeOutput" class="form-control border-0 rounded-0" 
+                              rows="25" 
+                              readonly
+                              style="display: none;"
+                              placeholder="Formatted code will appear here..."></textarea>
+                </div>
+                <div class="card-footer bg-light" id="outputFooter" style="display: none;">
+                    <small class="text-success">
+                        <i class="bi bi-check-circle"></i> <span id="outputMessage">Code formatted successfully</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mt-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Code Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <div class="stat-box">
+                                <h4 id="lineCount">0</h4>
+                                <small>Lines</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="stat-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <h4 id="charCount">0</h4>
+                                <small>Characters</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="stat-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                <h4 id="functionCount">0</h4>
+                                <small>Functions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="stat-box" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                                <h4 id="braceCount">0</h4>
+                                <small>Braces</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="stat-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                                <h4 id="commentCount">0</h4>
+                                <small>Comments</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="stat-box" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                                <h4 id="includeCount">0</h4>
+                                <small>Includes</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fullscreen View -->
+<div class="fullscreen-container" id="fullscreenContainer">
+    <div class="fullscreen-header">
+        <div class="fullscreen-title">
+            <i class="bi bi-code-slash"></i>
+            <span>C Code Formatter - Fullscreen View</span>
+        </div>
+        <div class="fullscreen-actions">
+            <button class="btn btn-sm btn-success" id="fullscreenCopyBtn">
+                <i class="bi bi-clipboard"></i> Copy Code
+            </button>
+            <button class="btn btn-sm btn-outline-light" id="exitFullscreenBtn">
+                <i class="bi bi-x-lg"></i> Exit Fullscreen (ESC)
+            </button>
+        </div>
+    </div>
+    <div class="fullscreen-content">
+        <div class="code-display">
+            <pre class="line-numbers"><code class="language-c" id="fullscreenCode">// Formatted code will appear here...</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert">
+        <div class="toast-header">
+            <i class="bi bi-check-circle-fill text-success me-2"></i>
+            <strong class="me-auto">Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            Action completed successfully!
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Prism JS for syntax highlighting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="{{ url_for('static', filename='js/c_formatter.js') }}"></script>
+{% endblock %}
+

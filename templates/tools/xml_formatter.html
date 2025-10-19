@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+
+{% block title %}XML Formatter - MyTools{% endblock %}
+
+{% block extra_css %}
+<!-- Prism CSS for syntax highlighting -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+<style>
+    .stat-box {
+        padding: 15px;
+        transition: transform 0.2s;
+    }
+    
+    .stat-box:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* XML Input & Output Styling */
+    #xmlInput, #xmlOutput {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+        font-size: 13px !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Syntax highlighted output */
+    .code-display {
+        height: 500px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        padding: 15px;
+        margin: 0;
+        border: none;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    
+    .code-display pre {
+        margin: 0;
+        background: transparent;
+    }
+    
+    .code-display code {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+    }
+    
+    /* XML Tree View Styles - Simple & Clean */
+    .xml-tree-container {
+        height: 500px;
+        overflow-y: auto;
+        background: #ffffff;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    
+    .tree-node {
+        padding: 2px 0;
+        cursor: text;
+        user-select: text;
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+    }
+    
+    .tree-node:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .tree-node-inline {
+        padding: 2px 0;
+    }
+    
+    .tree-toggle {
+        cursor: pointer;
+        display: inline-block;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        width: 14px;
+        height: 14px;
+        text-align: center;
+        color: #666;
+        font-size: 10px;
+        line-height: 14px;
+        margin-right: 4px;
+        user-select: none;
+    }
+    
+    .tree-toggle:hover {
+        color: #000;
+    }
+    
+    .tree-toggle.collapsed::before {
+        content: '▶';
+    }
+    
+    .tree-toggle.expanded::before {
+        content: '▼';
+    }
+    
+    .tree-toggle.leaf {
+        visibility: hidden;
+    }
+    
+    .tree-element-name {
+        color: #881391;
+        font-weight: normal;
+    }
+    
+    .tree-tag-bracket {
+        color: #881391;
+    }
+    
+    .tree-count {
+        color: #666;
+        font-size: 0.95em;
+    }
+    
+    .tree-attribute {
+        margin-left: 20px;
+        display: block;
+        color: #1a1aa6;
+    }
+    
+    .tree-attribute-name {
+        color: #1a1aa6;
+    }
+    
+    .tree-attribute-value {
+        color: #c41a16;
+    }
+    
+    .tree-text-content {
+        color: #c41a16;
+        display: inline;
+    }
+    
+    .tree-children {
+        margin-left: 20px;
+    }
+    
+    .tree-children.collapsed {
+        display: none;
+    }
+    
+    /* Simple scrollbar */
+    .xml-tree-container::-webkit-scrollbar {
+        width: 12px;
+    }
+    
+    .xml-tree-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    .xml-tree-container::-webkit-scrollbar-thumb {
+        background: #888;
+    }
+    
+    .xml-tree-container::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    
+    /* View mode buttons */
+    .btn-check:checked + .btn-outline-light {
+        background-color: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Search highlight styles */
+    .search-highlight {
+        background-color: #ffeb3b;
+        padding: 2px 0;
+        border-radius: 2px;
+    }
+    
+    .search-highlight-current {
+        background-color: #ff9800;
+        padding: 2px 0;
+        border-radius: 2px;
+        font-weight: bold;
+    }
+    
+    .tree-search-match {
+        background-color: #ffeb3b !important;
+    }
+    
+    .tree-search-current {
+        background-color: #ff9800 !important;
+        font-weight: bold;
+    }
+    
+    /* Text selection and copy button styles */
+    .selectable {
+        user-select: text !important;
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+        cursor: text;
+    }
+    
+    #floatingCopyBtn {
+        position: fixed;
+        display: none;
+        z-index: 9999;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        animation: fadeInScale 0.2s ease;
+    }
+    
+    #floatingCopyBtn:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+        transform: translateY(-2px);
+    }
+    
+    #floatingCopyBtn:active {
+        transform: translateY(0);
+    }
+    
+    #floatingCopyBtn i {
+        margin-right: 6px;
+    }
+    
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    /* Custom text selection color */
+    .code-display ::selection,
+    .xml-tree-container ::selection {
+        background-color: #b3d4fc;
+        color: #000;
+    }
+    
+    .code-display ::-moz-selection,
+    .xml-tree-container ::-moz-selection {
+        background-color: #b3d4fc;
+        color: #000;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center">
+                <a href="/" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+                <h2 class="mb-0">
+                    <i class="bi bi-code-slash text-primary"></i> XML Formatter
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <button id="formatBtn" class="btn btn-primary">
+                    <i class="bi bi-arrow-right-circle"></i> Format
+                </button>
+                <button id="clearBtn" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Clear
+                </button>
+                <button id="copyBtn" class="btn btn-success" disabled>
+                    <i class="bi bi-clipboard"></i> Copy Formatted XML
+                </button>
+                <button id="minifyBtn" class="btn btn-warning">
+                    <i class="bi bi-dash-square"></i> Minify
+                </button>
+                
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <label for="indentSize" class="form-label mb-0">Indent Size:</label>
+                    <select id="indentSize" class="form-select" style="width: auto;">
+                        <option value="2" selected>2 spaces</option>
+                        <option value="4">4 spaces</option>
+                        <option value="8">8 spaces</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Input Column -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square"></i> XML Input</h5>
+                </div>
+                <div class="card-body p-0">
+                    <textarea id="xmlInput" class="form-control border-0 rounded-0" 
+                              rows="20" 
+                              placeholder="Paste your XML content here...
+
+Example:
+<?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>
+<root>
+<user>
+<name>John Doe</name>
+<email>john@example.com</email>
+<age>30</age>
+</user>
+</root>"></textarea>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Paste unformatted or messy XML to beautify it
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Column -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="mb-0"><i class="bi bi-code-square"></i> XML Output</h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <!-- Search Box -->
+                            <div class="input-group input-group-sm" style="width: 250px;">
+                                <span class="input-group-text bg-white">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="searchInput" placeholder="Find in XML...">
+                                <button class="btn btn-light" id="searchPrevBtn" title="Previous match" disabled>
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                                <button class="btn btn-light" id="searchNextBtn" title="Next match" disabled>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <button class="btn btn-light" id="clearSearchBtn" title="Clear search" disabled>
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Search Results Badge -->
+                            <span id="searchResultsBadge" class="badge bg-light text-dark align-self-center" style="display: none;">
+                                <span id="searchResultsText">0 / 0</span>
+                            </span>
+                            
+                            <!-- Tree Control Buttons -->
+                            <div id="treeControls" class="btn-group btn-group-sm" style="display: none;">
+                                <button class="btn btn-outline-light btn-sm" id="expandAllBtn" title="Expand All">
+                                    <i class="bi bi-arrows-expand"></i> Expand All
+                                </button>
+                                <button class="btn btn-outline-light btn-sm" id="collapseAllBtn" title="Collapse All">
+                                    <i class="bi bi-arrows-collapse"></i> Collapse All
+                                </button>
+                            </div>
+                            
+                            <!-- View Mode Toggle -->
+                            <div class="btn-group btn-group-sm" role="group">
+                                <input type="radio" class="btn-check" name="viewMode" id="textViewMode" value="text" checked>
+                                <label class="btn btn-outline-light" for="textViewMode">
+                                    <i class="bi bi-file-text"></i> Text
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="viewMode" id="treeViewMode" value="tree">
+                                <label class="btn btn-outline-light" for="treeViewMode">
+                                    <i class="bi bi-diagram-3"></i> Tree
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Text View with Syntax Highlighting -->
+                    <div id="xmlOutputHighlighted" class="code-display selectable">
+                        <pre><code class="language-xml selectable" id="xmlOutputCode"><!-- Formatted XML will appear here... --></code></pre>
+                    </div>
+                    
+                    <!-- Plain Textarea (hidden) -->
+                    <textarea id="xmlOutput" class="form-control border-0 rounded-0" 
+                              rows="20" 
+                              readonly
+                              style="display: none;"
+                              placeholder="Formatted XML will appear here..."></textarea>
+                    
+                    <!-- Tree View -->
+                    <div id="xmlTreeView" class="xml-tree-container selectable" style="display: none;">
+                        <div id="xmlTreeContent" class="p-3 selectable">
+                            <div class="text-muted text-center py-5">
+                                <i class="bi bi-diagram-3 display-1"></i>
+                                <p class="mt-3">Format XML to see tree structure</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light" id="outputFooter" style="display: none;">
+                    <small class="text-success">
+                        <i class="bi bi-check-circle"></i> <span id="outputMessage">XML formatted successfully</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="row mt-3" id="statsSection" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="stat-box">
+                                <i class="bi bi-file-text text-primary fs-4"></i>
+                                <h4 class="mb-0 mt-2" id="lineCount">0</h4>
+                                <small class="text-muted">Lines</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-box">
+                                <i class="bi bi-textarea-t text-info fs-4"></i>
+                                <h4 class="mb-0 mt-2" id="charCount">0</h4>
+                                <small class="text-muted">Characters</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-box">
+                                <i class="bi bi-file-earmark-code text-success fs-4"></i>
+                                <h4 class="mb-0 mt-2" id="sizeKB">0</h4>
+                                <small class="text-muted">Size (KB)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-box">
+                                <i class="bi bi-diagram-3 text-warning fs-4"></i>
+                                <h4 class="mb-0 mt-2" id="elementCount">~0</h4>
+                                <small class="text-muted">Elements</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Copy Button for Text Selection -->
+    <button id="floatingCopyBtn" title="Copy selected text">
+        <i class="bi bi-clipboard"></i> Copy Selection
+    </button>
+
+    <!-- Toast for notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notificationToast" class="toast" role="alert">
+            <div class="toast-header">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                Message
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<!-- Prism JS for syntax highlighting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script src="{{ url_for('static', filename='js/xml_formatter.js') }}"></script>
+{% endblock %}
+
