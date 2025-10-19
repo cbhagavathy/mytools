@@ -142,6 +142,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 const lines = text.split('\n');
                 return [...new Set(lines)].join('\n');
                 
+            case 'identifyduplicates':
+                const linesList = text.split('\n');
+                const lineCounts = {};
+                
+                // Count occurrences of each line
+                linesList.forEach(line => {
+                    lineCounts[line] = (lineCounts[line] || 0) + 1;
+                });
+                
+                // Find and format duplicates with counts
+                const duplicates = [];
+                const seenLines = new Set();
+                
+                linesList.forEach(line => {
+                    if (lineCounts[line] > 1 && !seenLines.has(line)) {
+                        duplicates.push(`[${lineCounts[line]}x] ${line}`);
+                        seenLines.add(line);
+                    }
+                });
+                
+                if (duplicates.length === 0) {
+                    return '# No duplicates found';
+                }
+                
+                return `# Found ${duplicates.length} unique duplicate line(s)\n# Format: [count] line content\n\n` + duplicates.join('\n');
+                
             case 'sortlines':
                 return text.split('\n').sort().join('\n');
                 
