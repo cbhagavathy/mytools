@@ -120,6 +120,11 @@ def podl_editor():
     """PODL class definition editor tool"""
     return render_template('tools/podl_editor.html')
 
+@app.route('/tools/plsql-sql-converter')
+def plsql_sql_converter():
+    """PL/SQL Dynamic SQL to Regular SQL Converter"""
+    return render_template('tools/plsql_sql_converter.html')
+
 @app.route('/api/parse-brm-logs', methods=['POST'])
 def parse_brm_logs():
     """API endpoint to parse BRM CM logs from ZIP file - Returns summary only"""
