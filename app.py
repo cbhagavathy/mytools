@@ -115,6 +115,11 @@ def brm_cm_logviewer():
     """BRM CM log viewer and analyzer tool"""
     return render_template('tools/brm_cm_logviewer.html')
 
+@app.route('/tools/podl-editor')
+def podl_editor():
+    """PODL class definition editor tool"""
+    return render_template('tools/podl_editor.html')
+
 @app.route('/api/parse-brm-logs', methods=['POST'])
 def parse_brm_logs():
     """API endpoint to parse BRM CM logs from ZIP file - Returns summary only"""
