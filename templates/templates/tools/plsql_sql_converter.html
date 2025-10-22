@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}PL/SQL Dynamic SQL Converter{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-code"></i> PL/SQL Dynamic SQL Converter</h2>
+            <p class="text-muted">Convert PL/SQL dynamic SQL (concatenated strings) into clean, formatted SQL queries</p>
+        </div>
+    </div>
+
+    <!-- Quick Help -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info alert-dismissible fade show">
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <strong><i class="fas fa-info-circle"></i> Quick Guide:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Paste your PL/SQL dynamic SQL code (with := and || operators)</li>
+                    <li>Variables will be replaced with placeholders like <code>&lt;variable_name&gt;</code></li>
+                    <li>Optionally provide variable values to substitute them</li>
+                    <li>Get clean, formatted SQL ready to test!</li>
+                </ul>
+                <button class="btn btn-sm btn-primary mt-2" id="loadExampleBtn">
+                    <i class="fas fa-file-code"></i> Load Example
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Input Section -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-import"></i> PL/SQL Dynamic SQL Input</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control font-monospace" id="plsqlInput" rows="20" 
+                              placeholder="Paste your PL/SQL dynamic SQL here, e.g.:
+
+v_sql := 'SELECT ' ||
+         '    column1, ' ||
+         '    column2 ' ||
+         'FROM ' || v_table_name ||
+         'WHERE id = ' || v_id;"></textarea>
+                    
+                    <div class="mt-3">
+                        <h6>Variable Substitution (Optional):</h6>
+                        <small class="text-muted">Provide values for variables found in your SQL. Format: variable_name = value (one per line)</small>
+                        <textarea class="form-control font-monospace mt-2" id="variableInput" rows="5"
+                                  placeholder="e.g.:
+i_tmp_summary_table = account_summary_tmp
+i_parent_bill_obj_id0 = 12345
+v_status = 'ACTIVE'"></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-success btn-lg" id="convertBtn">
+                            <i class="fas fa-exchange-alt"></i> Convert to SQL
+                        </button>
+                        <button class="btn btn-secondary" id="clearBtn">
+                            <i class="fas fa-eraser"></i> Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-export"></i> Formatted SQL Output</h5>
+                    <div>
+                        <button class="btn btn-light btn-sm" id="copyBtn" title="Copy to Clipboard">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button class="btn btn-light btn-sm" id="downloadBtn" title="Download SQL File">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control font-monospace" id="sqlOutput" rows="20" readonly 
+                              placeholder="Formatted SQL will appear here..."></textarea>
+                    
+                    <div id="variablesFound" class="mt-3" style="display: none;">
+                        <div class="alert alert-warning">
+                            <strong><i class="fas fa-exclamation-triangle"></i> Variables Found:</strong>
+                            <div id="variablesList" class="mt-2"></div>
+                            <small class="text-muted">These variables have been replaced with placeholders. Use the "Variable Substitution" section to provide actual values.</small>
+                        </div>
+                    </div>
+                    
+                    <div id="statsInfo" class="mt-3" style="display: none;">
+                        <div class="alert alert-info">
+                            <strong><i class="fas fa-chart-bar"></i> Conversion Stats:</strong>
+                            <ul class="mb-0 mt-2" id="statsList"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Options Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fas fa-cog"></i> Conversion Options</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="formatSql" checked>
+                                <label class="form-check-label" for="formatSql">
+                                    Format SQL (pretty print)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="uppercaseKeywords" checked>
+                                <label class="form-check-label" for="uppercaseKeywords">
+                                    Uppercase SQL keywords
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="removeComments" checked>
+                                <label class="form-check-label" for="removeComments">
+                                    Remove comments
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="addSemicolon" checked>
+                                <label class="form-check-label" for="addSemicolon">
+                                    Add semicolon at end
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/plsql_sql_converter.js') }}"></script>
+{% endblock %}
+
